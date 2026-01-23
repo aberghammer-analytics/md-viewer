@@ -81,7 +81,10 @@ function setEditMode(editMode) {
 
 async function renderPreview() {
   if (!state.currentContent) {
-    elements.preview.innerHTML = '<p class="empty-state">No file loaded. Open a markdown file to get started.</p>';
+    const message = state.filePath
+      ? 'No file loaded. Open a markdown file to get started.'
+      : 'Start typing in edit mode...';
+    elements.preview.innerHTML = `<p class="empty-state">${message}</p>`;
     return;
   }
 
@@ -131,8 +134,39 @@ async function loadFile(path) {
   }
 }
 
+async function saveFileAs() {
+  const dialog = window.__TAURI__?.dialog;
+  if (!dialog?.save) {
+    alert('Save dialog not available');
+    return null;
+  }
+
+  try {
+    const path = await dialog.save({
+      defaultPath: 'untitled.md',
+      filters: [{ name: 'Markdown', extensions: ['md'] }]
+    });
+
+    if (path) {
+      state.filePath = path;
+      state.filename = path.split('/').pop();
+      elements.filename.textContent = state.filename;
+    }
+    return path;
+  } catch (error) {
+    console.error('Failed to open save dialog:', error);
+    return null;
+  }
+}
+
 async function saveFile() {
-  if (!state.filePath || !state.isDirty) return;
+  if (!state.isDirty && state.filePath) return;
+
+  // If no file path, prompt user for save location
+  if (!state.filePath) {
+    const path = await saveFileAs();
+    if (!path) return;  // User cancelled
+  }
 
   try {
     await invoke('save_file', {
@@ -265,14 +299,22 @@ async function init() {
       // Apply theme
       applyTheme(theme);
 
-      // Load file if provided
+      // Load file if provided, otherwise start blank editor
       if (file_path) {
         await loadFile(file_path);
-      }
-
-      // Set initial edit mode
-      if (edit_mode) {
-        setEditMode(true);
+        // Set initial edit mode if requested
+        if (edit_mode) {
+          setEditMode(true);
+        }
+      } else {
+        // New blank document mode
+        state.filename = 'Untitled';
+        state.currentContent = '';
+        state.originalContent = '';
+        state.filePath = null;
+        elements.filename.textContent = 'Untitled';
+        elements.preview.innerHTML = '<p class="empty-state">Start typing in edit mode...</p>';
+        setEditMode(true);  // Start in edit mode for blank documents
       }
     });
 

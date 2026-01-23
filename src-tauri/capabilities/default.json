@@ -9,6 +9,7 @@
     "core:window:allow-close",
     "core:window:allow-set-title",
     "dialog:default",
-    "dialog:allow-confirm"
+    "dialog:allow-confirm",
+    "dialog:allow-save"
   ]
 }

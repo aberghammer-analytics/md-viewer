@@ -25,8 +25,7 @@ pub fn load_file(path: String) -> Result<FileContent, String> {
         return Err(format!("Not a file: {}", path));
     }
 
-    let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let content = fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))?;
 
     let filename = path_obj
         .file_name()
@@ -47,8 +46,7 @@ pub fn load_file(path: String) -> Result<FileContent, String> {
 /// Saves content to a file
 #[tauri::command]
 pub fn save_file(path: String, content: String) -> Result<(), String> {
-    fs::write(&path, &content)
-        .map_err(|e| format!("Failed to save file: {}", e))
+    fs::write(&path, &content).map_err(|e| format!("Failed to save file: {}", e))
 }
 
 /// Renders markdown content to HTML

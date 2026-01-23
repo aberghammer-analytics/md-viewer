@@ -42,9 +42,7 @@ fn main() {
         if p.is_absolute() {
             p
         } else {
-            std::env::current_dir()
-                .map(|cwd| cwd.join(&p))
-                .unwrap_or(p)
+            std::env::current_dir().map(|cwd| cwd.join(&p)).unwrap_or(p)
         }
         .to_string_lossy()
         .to_string()
@@ -67,13 +65,12 @@ fn main() {
             let window = app.get_webview_window("main").unwrap();
 
             // Set window title based on file
-            if let Some(ref path) = file_path {
-                let filename = std::path::Path::new(path)
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("Markdown Viewer");
-                window.set_title(filename).ok();
-            }
+            let title = file_path
+                .as_ref()
+                .and_then(|p| std::path::Path::new(p).file_name())
+                .and_then(|n| n.to_str())
+                .unwrap_or("Untitled");
+            window.set_title(title).ok();
 
             // Emit initial state after a short delay to ensure frontend is ready
             let window_clone = window.clone();
