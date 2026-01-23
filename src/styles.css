@@ -1,36 +1,44 @@
-/* CSS Variables for theming */
+/* CSS Variables for theming - Retro CRT Terminal */
 :root {
-  --bg-color: #ffffff;
-  --text-color: #24292f;
-  --header-bg: #f6f8fa;
-  --header-border: #d0d7de;
-  --btn-hover-bg: #e1e4e8;
-  --editor-bg: #ffffff;
-  --code-bg: #f6f8fa;
-  --border-color: #d0d7de;
-  --link-color: #0969da;
-  --blockquote-border: #d0d7de;
-  --blockquote-text: #57606a;
-  --table-border: #d0d7de;
-  --table-row-alt: #f6f8fa;
-  --dirty-color: #cf222e;
+  /* Light mode - Inverse terminal (warm paper) */
+  --bg-color: #f0f0e8;
+  --text-color: #1a1a1a;
+  --header-bg: #e0e0d8;
+  --header-border: #c0c0b8;
+  --btn-hover-bg: #d0d0c8;
+  --btn-border: #1a1a1a;
+  --editor-bg: #f0f0e8;
+  --code-bg: #e0e0d8;
+  --border-color: #c0c0b8;
+  --link-color: #1a1a1a;
+  --blockquote-border: #606060;
+  --blockquote-text: #3a3a3a;
+  --table-border: #c0c0b8;
+  --table-row-alt: #e8e8e0;
+  --dirty-color: #cc0000;
+  --accent-color: #1a1a1a;
+  --text-glow: none;
 }
 
 [data-theme="dark"] {
-  --bg-color: #0d1117;
-  --text-color: #c9d1d9;
-  --header-bg: #161b22;
-  --header-border: #30363d;
-  --btn-hover-bg: #30363d;
-  --editor-bg: #0d1117;
-  --code-bg: #161b22;
-  --border-color: #30363d;
-  --link-color: #58a6ff;
-  --blockquote-border: #3b434b;
-  --blockquote-text: #8b949e;
-  --table-border: #30363d;
-  --table-row-alt: #161b22;
-  --dirty-color: #f85149;
+  /* Dark mode - White CRT terminal */
+  --bg-color: #0a0a0a;
+  --text-color: #e0e0e0;
+  --header-bg: #0f0f0f;
+  --header-border: #2a2a2a;
+  --btn-hover-bg: #1a1a1a;
+  --btn-border: #e0e0e0;
+  --editor-bg: #0a0a0a;
+  --code-bg: #0f0f0f;
+  --border-color: #2a2a2a;
+  --link-color: #ffffff;
+  --blockquote-border: #606060;
+  --blockquote-text: #909090;
+  --table-border: #2a2a2a;
+  --table-row-alt: #0f0f0f;
+  --dirty-color: #ff6666;
+  --accent-color: #ffffff;
+  --text-glow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 * {
@@ -49,6 +57,42 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.2s, color 0.2s;
+}
+
+/* CRT scanline overlay effect (dark mode only) */
+[data-theme="dark"] body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1) 0px,
+    rgba(0, 0, 0, 0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Subtle vignette effect (dark mode only) */
+[data-theme="dark"] body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
 }
 
 #app {
@@ -77,9 +121,11 @@ body {
 }
 
 .filename {
+  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-color);
+  text-shadow: var(--text-glow);
 }
 
 .dirty-indicator {
@@ -100,19 +146,22 @@ body {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: none;
+  border: 1px solid var(--btn-border);
   background: transparent;
-  border-radius: 6px;
+  border-radius: 2px;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 
 .header-btn:hover {
   background-color: var(--btn-hover-bg);
+  border-color: var(--accent-color);
 }
 
 .header-btn .icon {
-  font-size: 16px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-color);
 }
 
 /* Content area */
@@ -236,7 +285,8 @@ body {
   font-size: 85%;
   padding: 0.2em 0.4em;
   background-color: var(--code-bg);
-  border-radius: 6px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
 }
 
 .markdown-body pre {
@@ -247,13 +297,14 @@ body {
   font-size: 85%;
   line-height: 1.45;
   background-color: var(--code-bg);
-  border-radius: 6px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
 }
 
 .markdown-body pre code {
   padding: 0;
   background-color: transparent;
-  border-radius: 0;
+  border: none;
   font-size: 100%;
 }
 
@@ -304,7 +355,8 @@ body {
 .markdown-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
 }
 
 /* Editor */
@@ -315,14 +367,16 @@ body {
   border: none;
   outline: none;
   resize: none;
-  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
-  font-size: 14px;
+  font-family: 'Iosevka', ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
+  font-size: 15px;
   line-height: 1.6;
   background-color: var(--editor-bg);
   color: var(--text-color);
   max-width: 900px;
   margin: 0 auto;
   display: block;
+  text-shadow: var(--text-glow);
+  caret-color: var(--accent-color);
 }
 
 .editor[hidden] {
@@ -343,10 +397,32 @@ body {
 .markdown-body::-webkit-scrollbar-thumb,
 .editor::-webkit-scrollbar-thumb {
   background-color: var(--border-color);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .markdown-body::-webkit-scrollbar-thumb:hover,
 .editor::-webkit-scrollbar-thumb:hover {
-  background-color: var(--blockquote-text);
+  background-color: var(--accent-color);
+}
+
+/* Dark mode text glow for markdown body */
+[data-theme="dark"] .markdown-body {
+  text-shadow: var(--text-glow);
+}
+
+[data-theme="dark"] .markdown-body h1,
+[data-theme="dark"] .markdown-body h2,
+[data-theme="dark"] .markdown-body h3,
+[data-theme="dark"] .markdown-body h4,
+[data-theme="dark"] .markdown-body h5,
+[data-theme="dark"] .markdown-body h6 {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .markdown-body a {
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .markdown-body code {
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 }

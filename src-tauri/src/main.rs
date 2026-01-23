@@ -21,8 +21,8 @@ struct Cli {
     #[arg(short, long)]
     edit: bool,
 
-    /// Set the theme (light, dark, or system)
-    #[arg(short, long, default_value = "system")]
+    /// Set the theme (light or dark)
+    #[arg(short, long, default_value = "dark")]
     theme: String,
 }
 

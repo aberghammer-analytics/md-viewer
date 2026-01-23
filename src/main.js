@@ -8,7 +8,7 @@ const state = {
   currentContent: '',
   isEditMode: false,
   isDirty: false,
-  theme: 'system',
+  theme: 'dark',
 };
 
 // Debounce utility for live preview
@@ -26,36 +26,36 @@ let elements = {};
 // Tauri APIs (initialized after Tauri is ready)
 let invoke, listen, appWindow;
 
-// Theme management
-function getSystemTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+// SVG icon paths
+const icons = {
+  pencil: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z',
+  eye: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+  moon: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z',
+  sun: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z',
+};
+
+function setIconPath(button, pathData) {
+  const path = button.querySelector('.icon path');
+  if (path) {
+    path.setAttribute('d', pathData);
+  }
 }
 
+// Theme management
 function applyTheme(theme) {
   state.theme = theme;
-  const effectiveTheme = theme === 'system' ? getSystemTheme() : theme;
-  document.documentElement.setAttribute('data-theme', effectiveTheme);
+  document.documentElement.setAttribute('data-theme', theme);
 
-  // Update theme button icon
-  const icons = { light: '☀️', dark: '🌙', system: '💻' };
+  // Update theme button icon (show sun in dark mode, moon in light mode)
   if (elements.toggleTheme) {
-    elements.toggleTheme.querySelector('.icon').textContent = icons[theme] || '🌙';
+    setIconPath(elements.toggleTheme, theme === 'dark' ? icons.sun : icons.moon);
   }
 }
 
 function toggleTheme() {
-  const themes = ['system', 'light', 'dark'];
-  const currentIndex = themes.indexOf(state.theme);
-  const nextTheme = themes[(currentIndex + 1) % themes.length];
+  const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
   applyTheme(nextTheme);
 }
-
-// Listen for system theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (state.theme === 'system') {
-    applyTheme('system');
-  }
-});
 
 // Edit/Preview mode management
 function setEditMode(editMode) {
@@ -66,12 +66,12 @@ function setEditMode(editMode) {
     elements.editor.hidden = false;
     elements.editor.value = state.currentContent;
     elements.editor.focus();
-    elements.toggleMode.querySelector('.icon').textContent = '👁️';
+    setIconPath(elements.toggleMode, icons.eye);
     elements.toggleMode.title = 'Toggle to Preview (Cmd+E)';
   } else {
     elements.editor.hidden = true;
     elements.preview.hidden = false;
-    elements.toggleMode.querySelector('.icon').textContent = '📝';
+    setIconPath(elements.toggleMode, icons.pencil);
     elements.toggleMode.title = 'Toggle to Edit (Cmd+E)';
 
     // Always re-render preview to ensure it's in sync with editor
@@ -288,8 +288,8 @@ async function init() {
     // Set up close protection
     await setupCloseProtection();
 
-    // Apply default theme
-    applyTheme('system');
+    // Apply default theme (dark for retro CRT aesthetic)
+    applyTheme('dark');
 
     // Listen for init event from Rust backend
     await listen('app-init', async (event) => {
