@@ -11,6 +11,15 @@ const state = {
   theme: 'system',
 };
 
+// Debounce utility for live preview
+function debounce(fn, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 // DOM Elements (initialized after DOM ready)
 let elements = {};
 
@@ -65,10 +74,8 @@ function setEditMode(editMode) {
     elements.toggleMode.querySelector('.icon').textContent = '📝';
     elements.toggleMode.title = 'Toggle to Edit (Cmd+E)';
 
-    // Re-render preview if content changed
-    if (state.currentContent !== state.originalContent || state.isDirty) {
-      renderPreview();
-    }
+    // Always re-render preview to ensure it's in sync with editor
+    renderPreview();
   }
 }
 
@@ -174,6 +181,11 @@ async function setupCloseProtection() {
   }
 }
 
+// Debounced preview update for live sync
+const debouncedRenderPreview = debounce(() => {
+  renderPreview();
+}, 150);
+
 // Initialize DOM elements
 function initElements() {
   elements = {
@@ -185,10 +197,12 @@ function initElements() {
     toggleTheme: document.getElementById('toggle-theme'),
   };
 
-  // Editor input handling
+  // Editor input handling with live preview
   elements.editor.addEventListener('input', () => {
     state.currentContent = elements.editor.value;
     updateDirtyState();
+    // Update preview in real-time (debounced)
+    debouncedRenderPreview();
   });
 
   // Button click handlers
