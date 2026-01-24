@@ -189,6 +189,9 @@ async function setupCloseProtection() {
   try {
     appWindow.onCloseRequested(async (event) => {
       if (state.isDirty) {
+        // Prevent close immediately while we show the dialog
+        event.preventDefault();
+
         // Try to use Tauri dialog, fall back to browser confirm
         let confirmed = false;
         try {
@@ -205,8 +208,9 @@ async function setupCloseProtection() {
           confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
         }
 
-        if (!confirmed) {
-          event.preventDefault();
+        // If user confirmed, explicitly close the window
+        if (confirmed) {
+          await appWindow.close();
         }
       }
     });
