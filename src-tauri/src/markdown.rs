@@ -10,7 +10,7 @@ pub fn render_to_html(content: &str) -> String {
     options.extension.autolink = true;
     options.extension.tasklist = true;
     options.extension.footnotes = true;
-    options.extension.header_ids = Some("heading-".to_string());
+    options.extension.header_ids = Some(String::new());
 
     // Enable raw HTML support
     options.render.unsafe_ = true;

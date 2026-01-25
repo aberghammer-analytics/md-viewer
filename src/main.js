@@ -20,6 +20,24 @@ function debounce(fn, delay) {
   };
 }
 
+// Scroll position utilities for edit/preview sync
+function getScrollPercentage(element) {
+  const { scrollTop, scrollHeight, clientHeight } = element;
+  const maxScroll = scrollHeight - clientHeight;
+  if (maxScroll <= 0) return 0;
+  return scrollTop / maxScroll;
+}
+
+function setScrollPercentage(element, percentage) {
+  const { scrollHeight, clientHeight } = element;
+  const maxScroll = scrollHeight - clientHeight;
+  if (maxScroll <= 0) {
+    element.scrollTop = 0;
+    return;
+  }
+  element.scrollTop = Math.max(0, Math.min(1, percentage)) * maxScroll;
+}
+
 // DOM Elements (initialized after DOM ready)
 let elements = {};
 
@@ -61,11 +79,22 @@ function toggleTheme() {
 function setEditMode(editMode) {
   state.isEditMode = editMode;
 
+  // Capture scroll position from currently visible element
+  const scrollPercentage = editMode
+    ? getScrollPercentage(elements.preview)
+    : getScrollPercentage(elements.editor);
+
   if (editMode) {
     elements.preview.hidden = true;
     elements.editor.hidden = false;
     elements.editor.value = state.currentContent;
-    elements.editor.focus();
+
+    // Apply scroll position after DOM update
+    requestAnimationFrame(() => {
+      setScrollPercentage(elements.editor, scrollPercentage);
+      elements.editor.focus();
+    });
+
     setIconPath(elements.toggleMode, icons.eye);
     elements.toggleMode.title = 'Toggle to Preview (Cmd+E)';
   } else {
@@ -74,8 +103,12 @@ function setEditMode(editMode) {
     setIconPath(elements.toggleMode, icons.pencil);
     elements.toggleMode.title = 'Toggle to Edit (Cmd+E)';
 
-    // Always re-render preview to ensure it's in sync with editor
-    renderPreview();
+    // Re-render preview, then apply scroll position
+    renderPreview().then(() => {
+      requestAnimationFrame(() => {
+        setScrollPercentage(elements.preview, scrollPercentage);
+      });
+    });
   }
 }
 
@@ -249,6 +282,19 @@ function initElements() {
   });
 
   elements.toggleTheme.addEventListener('click', toggleTheme);
+
+  // Handle internal anchor links in preview
+  elements.preview.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="#"]');
+    if (link) {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').slice(1);
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
 }
 
 // Keyboard shortcuts
