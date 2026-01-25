@@ -2,6 +2,13 @@
 name = "md-viewer"
 version = "0.1.0"
 edition = "2021"
+description = "A minimal, fast CLI tool to view and edit markdown files"
+license = "MIT"
+repository = "https://github.com/aberghammer-analytics/md-viewer"
+homepage = "https://github.com/aberghammer-analytics/md-viewer"
+readme = "../README.md"
+keywords = ["markdown", "viewer", "editor", "cli", "tauri"]
+categories = ["command-line-utilities", "text-editors"]
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
