@@ -344,18 +344,61 @@ function initElements() {
 
   elements.toggleTheme.addEventListener('click', toggleTheme);
 
-  // Handle internal anchor links in preview
-  elements.preview.addEventListener('click', (e) => {
-    const link = e.target.closest('a[href^="#"]');
-    if (link) {
-      e.preventDefault();
-      const targetId = link.getAttribute('href').slice(1);
+  // Handle all links in preview
+  elements.preview.addEventListener('click', async (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+
+    e.preventDefault();
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    // Internal anchor links - scroll behavior
+    if (href.startsWith('#')) {
+      const targetId = href.slice(1);
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
         targetElement.scrollIntoView({ behavior: 'smooth' });
       }
+      return;
     }
+
+    // External links - confirm and open in browser
+    await handleExternalLink(href);
   });
+}
+
+// Handle external links with confirmation dialog
+async function handleExternalLink(url) {
+  const { openUrl } = window.__TAURI__.opener;
+  const { ask } = window.__TAURI__.dialog;
+
+  const skipConfirm = localStorage.getItem('skipExternalLinkConfirm') === 'true';
+
+  if (skipConfirm) {
+    await openUrl(url);
+    return;
+  }
+
+  // First dialog: confirm opening
+  const shouldOpen = await ask(
+    `This link will open in your browser:\n${url}`,
+    { title: 'Open External Link?', kind: 'warning', okLabel: 'Open', cancelLabel: 'Cancel' }
+  );
+
+  if (!shouldOpen) return;
+
+  // Second dialog: remember choice
+  const alwaysOpen = await ask(
+    'Always open external links without asking?',
+    { title: 'Remember Choice?', kind: 'info', okLabel: 'Yes', cancelLabel: 'No' }
+  );
+
+  if (alwaysOpen) {
+    localStorage.setItem('skipExternalLinkConfirm', 'true');
+  }
+
+  await openUrl(url);
 }
 
 // Keyboard shortcuts

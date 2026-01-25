@@ -11,6 +11,8 @@
     "core:window:allow-set-title",
     "dialog:default",
     "dialog:allow-confirm",
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "dialog:allow-ask",
+    "opener:default"
   ]
 }
