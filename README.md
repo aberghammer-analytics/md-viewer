@@ -25,11 +25,18 @@ md report.md
   - **Linux**: See [Tauri prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites#setting-up-linux)
   - **Windows**: See [Tauri prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites#setting-up-windows)
 
+### Install via Homebrew (macOS)
+
+```bash
+brew tap aberghammer-analytics/md-viewer
+brew install md-viewer
+```
+
 ### Build from source
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/md-viewer.git
+git clone https://github.com/aberghammer-analytics/md-viewer.git
 cd md-viewer
 
 # Install dependencies
