@@ -426,3 +426,67 @@ body {
 [data-theme="dark"] .markdown-body code {
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 }
+
+/* Unsaved changes modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal[hidden] { display: none; }
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.modal-message {
+  margin: 0 0 24px;
+  color: var(--blockquote-text);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--btn-border);
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.modal-btn:hover { background: var(--btn-hover-bg); }
+
+.modal-btn-primary {
+  background: var(--accent-color);
+  color: var(--bg-color);
+  border-color: var(--accent-color);
+}
+
+.modal-btn-primary:hover { opacity: 0.9; }
+
+.modal-btn-secondary { color: var(--dirty-color); }

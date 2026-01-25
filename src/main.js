@@ -273,40 +273,40 @@ async function saveFile() {
 }
 
 // Close protection
+let pendingClose = false;
+
 async function setupCloseProtection() {
   if (!appWindow) return;
 
-  try {
-    appWindow.onCloseRequested(async (event) => {
-      if (state.isDirty) {
-        // Prevent close immediately while we show the dialog
-        event.preventDefault();
+  // Modal button handlers
+  elements.modalSaveAs.addEventListener('click', async () => {
+    elements.unsavedModal.hidden = true;
+    const path = await saveFileAs();
+    if (path) {
+      await invoke('save_file', { path, content: state.currentContent });
+    }
+    await appWindow.close();
+  });
 
-        // Try to use Tauri dialog, fall back to browser confirm
-        let confirmed = false;
-        try {
-          const dialog = window.__TAURI__?.dialog;
-          if (dialog && dialog.confirm) {
-            confirmed = await dialog.confirm(
-              'You have unsaved changes. Are you sure you want to close?',
-              { title: 'Unsaved Changes', kind: 'warning' }
-            );
-          } else {
-            confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
-          }
-        } catch (e) {
-          confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?');
-        }
+  elements.modalDontSave.addEventListener('click', async () => {
+    elements.unsavedModal.hidden = true;
+    state.isDirty = false; // Prevent re-triggering
+    await appWindow.close();
+  });
 
-        // If user confirmed, explicitly close the window
-        if (confirmed) {
-          await appWindow.close();
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Failed to setup close protection:', error);
-  }
+  elements.modalCancel.addEventListener('click', () => {
+    elements.unsavedModal.hidden = true;
+    pendingClose = false;
+  });
+
+  // Window close handler
+  appWindow.onCloseRequested(async (event) => {
+    if (state.isDirty && !pendingClose) {
+      event.preventDefault();
+      pendingClose = true;
+      elements.unsavedModal.hidden = false;
+    }
+  });
 }
 
 // Debounced preview update for live sync
@@ -323,6 +323,10 @@ function initElements() {
     dirtyIndicator: document.getElementById('dirty-indicator'),
     toggleMode: document.getElementById('toggle-mode'),
     toggleTheme: document.getElementById('toggle-theme'),
+    unsavedModal: document.getElementById('unsaved-modal'),
+    modalSaveAs: document.getElementById('modal-save-as'),
+    modalDontSave: document.getElementById('modal-dont-save'),
+    modalCancel: document.getElementById('modal-cancel'),
   };
 
   // Editor input handling with live preview

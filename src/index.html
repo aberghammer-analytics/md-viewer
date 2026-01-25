@@ -35,6 +35,19 @@
       </article>
       <textarea class="editor" id="editor" hidden spellcheck="false"></textarea>
     </main>
+    <!-- Unsaved changes modal -->
+    <div id="unsaved-modal" class="modal" hidden>
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <h3 class="modal-title">Unsaved Changes</h3>
+        <p class="modal-message">Do you want to save your changes before closing?</p>
+        <div class="modal-buttons">
+          <button id="modal-cancel" class="modal-btn">Cancel</button>
+          <button id="modal-dont-save" class="modal-btn modal-btn-secondary">Don't Save</button>
+          <button id="modal-save-as" class="modal-btn modal-btn-primary">Save As</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="main.js"></script>
 </body>
