@@ -11,6 +11,9 @@ const state = {
   theme: 'dark',
 };
 
+// Guard to prevent rapid toggle conflicts
+let toggleInProgress = false;
+
 // Debounce utility for live preview
 function debounce(fn, delay) {
   let timeoutId;
@@ -36,6 +39,30 @@ function setScrollPercentage(element, percentage) {
     return;
   }
   element.scrollTop = Math.max(0, Math.min(1, percentage)) * maxScroll;
+}
+
+// Wait for element layout to stabilize (needed for scroll sync)
+function waitForLayout(element, maxAttempts = 10) {
+  return new Promise((resolve) => {
+    let attempts = 0;
+    let lastScrollHeight = 0;
+
+    function check() {
+      const currentHeight = element.scrollHeight;
+      if (currentHeight === lastScrollHeight && currentHeight > 0) {
+        resolve();
+        return;
+      }
+      lastScrollHeight = currentHeight;
+      attempts++;
+      if (attempts >= maxAttempts) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => requestAnimationFrame(check));
+    }
+    requestAnimationFrame(check);
+  });
 }
 
 // DOM Elements (initialized after DOM ready)
@@ -76,39 +103,69 @@ function toggleTheme() {
 }
 
 // Edit/Preview mode management
-function setEditMode(editMode) {
-  state.isEditMode = editMode;
+async function setEditMode(editMode) {
+  if (toggleInProgress) return;
+  toggleInProgress = true;
 
-  // Capture scroll position from currently visible element
-  const scrollPercentage = editMode
-    ? getScrollPercentage(elements.preview)
-    : getScrollPercentage(elements.editor);
+  try {
+    state.isEditMode = editMode;
 
-  if (editMode) {
-    elements.preview.hidden = true;
-    elements.editor.hidden = false;
-    elements.editor.value = state.currentContent;
+    // Capture scroll from currently visible element BEFORE changes
+    const sourceElement = editMode ? elements.preview : elements.editor;
+    let scrollPercentage = 0;
 
-    // Apply scroll position after DOM update
-    requestAnimationFrame(() => {
+    console.log('--- Toggle Mode ---');
+    console.log('Switching to:', editMode ? 'EDIT' : 'PREVIEW');
+    console.log('Source element hidden?', sourceElement.hidden);
+    console.log('Source scrollHeight:', sourceElement.scrollHeight);
+    console.log('Source clientHeight:', sourceElement.clientHeight);
+    console.log('Source scrollTop:', sourceElement.scrollTop);
+
+    if (!sourceElement.hidden && sourceElement.scrollHeight > sourceElement.clientHeight) {
+      scrollPercentage = getScrollPercentage(sourceElement);
+    }
+    console.log('Captured scroll percentage:', scrollPercentage);
+
+    if (editMode) {
+      // Switching to Edit Mode
+      // Show editor FIRST, then set content (avoids scroll issues with hidden elements)
+      elements.preview.hidden = true;
+      elements.editor.hidden = false;
+
+      // Set value (this may auto-scroll, so we'll fix it after layout)
+      elements.editor.value = state.currentContent;
+      elements.editor.scrollTop = 0; // Reset any auto-scroll from setting value
+
+      setIconPath(elements.toggleMode, icons.eye);
+      elements.toggleMode.title = 'Toggle to Preview (Cmd+E)';
+
+      await waitForLayout(elements.editor);
+      console.log('Editor scrollHeight after layout:', elements.editor.scrollHeight);
+
+      // Set scroll position
       setScrollPercentage(elements.editor, scrollPercentage);
-      elements.editor.focus();
-    });
+      console.log('Editor scrollTop after setting:', elements.editor.scrollTop);
 
-    setIconPath(elements.toggleMode, icons.eye);
-    elements.toggleMode.title = 'Toggle to Preview (Cmd+E)';
-  } else {
-    elements.editor.hidden = true;
-    elements.preview.hidden = false;
-    setIconPath(elements.toggleMode, icons.pencil);
-    elements.toggleMode.title = 'Toggle to Edit (Cmd+E)';
+      // Focus without scrolling by using preventScroll option
+      elements.editor.focus({ preventScroll: true });
+      console.log('Editor scrollTop after focus:', elements.editor.scrollTop);
 
-    // Re-render preview, then apply scroll position
-    renderPreview().then(() => {
-      requestAnimationFrame(() => {
-        setScrollPercentage(elements.preview, scrollPercentage);
-      });
-    });
+    } else {
+      // Switching to Preview Mode
+      elements.editor.hidden = true;
+      elements.preview.hidden = false;
+
+      setIconPath(elements.toggleMode, icons.pencil);
+      elements.toggleMode.title = 'Toggle to Edit (Cmd+E)';
+
+      await renderPreview();
+      await waitForLayout(elements.preview);
+      console.log('Preview scrollHeight after layout:', elements.preview.scrollHeight);
+      setScrollPercentage(elements.preview, scrollPercentage);
+      console.log('Preview scrollTop after setting:', elements.preview.scrollTop);
+    }
+  } finally {
+    toggleInProgress = false;
   }
 }
 
