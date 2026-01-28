@@ -29,7 +29,7 @@ md report.md
 
 ```bash
 brew tap aberghammer-analytics/md-viewer https://github.com/aberghammer-analytics/md-viewer.git
-brew install md-viewer
+brew install --cask md-viewer
 ```
 
 This installs the `md` command globally.
