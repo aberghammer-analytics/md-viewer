@@ -28,9 +28,11 @@ md report.md
 ### Install via Homebrew (macOS)
 
 ```bash
-brew tap aberghammer-analytics/md-viewer
+brew tap aberghammer-analytics/md-viewer https://github.com/aberghammer-analytics/md-viewer.git
 brew install md-viewer
 ```
+
+This installs the `md` command globally.
 
 ### Build from source
 
