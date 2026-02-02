@@ -114,17 +114,9 @@ async function setEditMode(editMode) {
     const sourceElement = editMode ? elements.preview : elements.editor;
     let scrollPercentage = 0;
 
-    console.log('--- Toggle Mode ---');
-    console.log('Switching to:', editMode ? 'EDIT' : 'PREVIEW');
-    console.log('Source element hidden?', sourceElement.hidden);
-    console.log('Source scrollHeight:', sourceElement.scrollHeight);
-    console.log('Source clientHeight:', sourceElement.clientHeight);
-    console.log('Source scrollTop:', sourceElement.scrollTop);
-
     if (!sourceElement.hidden && sourceElement.scrollHeight > sourceElement.clientHeight) {
       scrollPercentage = getScrollPercentage(sourceElement);
     }
-    console.log('Captured scroll percentage:', scrollPercentage);
 
     if (editMode) {
       // Switching to Edit Mode
@@ -140,15 +132,8 @@ async function setEditMode(editMode) {
       elements.toggleMode.title = 'Toggle to Preview (Cmd+E)';
 
       await waitForLayout(elements.editor);
-      console.log('Editor scrollHeight after layout:', elements.editor.scrollHeight);
-
-      // Set scroll position
       setScrollPercentage(elements.editor, scrollPercentage);
-      console.log('Editor scrollTop after setting:', elements.editor.scrollTop);
-
-      // Focus without scrolling by using preventScroll option
       elements.editor.focus({ preventScroll: true });
-      console.log('Editor scrollTop after focus:', elements.editor.scrollTop);
 
     } else {
       // Switching to Preview Mode
@@ -160,9 +145,7 @@ async function setEditMode(editMode) {
 
       await renderPreview();
       await waitForLayout(elements.preview);
-      console.log('Preview scrollHeight after layout:', elements.preview.scrollHeight);
       setScrollPercentage(elements.preview, scrollPercentage);
-      console.log('Preview scrollTop after setting:', elements.preview.scrollTop);
     }
   } finally {
     toggleInProgress = false;
@@ -447,7 +430,6 @@ async function init() {
 
     // Listen for init event from Rust backend
     await listen('app-init', async (event) => {
-      console.log('Received app-init event:', event.payload);
       const { file_path, edit_mode, theme } = event.payload;
 
       // Apply theme
@@ -472,7 +454,6 @@ async function init() {
       }
     });
 
-    console.log('Markdown Viewer initialized');
   } catch (error) {
     console.error('Failed to initialize app:', error);
     if (elements.preview) {

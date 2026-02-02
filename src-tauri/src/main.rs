@@ -4,10 +4,27 @@
 mod commands;
 mod markdown;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use serde::Serialize;
 use std::path::PathBuf;
 use tauri::{Emitter, Manager};
+
+/// Valid theme options
+#[derive(Debug, Clone, ValueEnum, Serialize)]
+#[serde(rename_all = "lowercase")]
+enum Theme {
+    Light,
+    Dark,
+}
+
+impl std::fmt::Display for Theme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Theme::Light => write!(f, "light"),
+            Theme::Dark => write!(f, "dark"),
+        }
+    }
+}
 
 /// A minimal, fast CLI tool to view and edit markdown files
 #[derive(Parser, Debug)]
@@ -22,8 +39,8 @@ struct Cli {
     edit: bool,
 
     /// Set the theme (light or dark)
-    #[arg(short, long, default_value = "dark")]
-    theme: String,
+    #[arg(short, long, value_enum, default_value_t = Theme::Dark)]
+    theme: Theme,
 }
 
 /// Initial application state sent to the frontend
@@ -31,7 +48,7 @@ struct Cli {
 struct AppInit {
     file_path: Option<String>,
     edit_mode: bool,
-    theme: String,
+    theme: Theme,
 }
 
 fn main() {
