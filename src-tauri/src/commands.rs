@@ -2,6 +2,22 @@ use crate::markdown::render_to_html;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use std::sync::Arc;
+
+/// Initial application state sent to the frontend
+#[derive(Debug, Serialize, Clone)]
+pub struct AppInit {
+    pub file_path: Option<String>,
+    pub edit_mode: bool,
+    pub theme: String,
+}
+
+/// Returns the initial application state (file path, edit mode, theme).
+/// Called by the frontend when it's ready, replacing the old event-based init.
+#[tauri::command]
+pub fn get_init_state(state: tauri::State<'_, Arc<AppInit>>) -> AppInit {
+    state.inner().as_ref().clone()
+}
 
 /// Allowed file extensions for markdown-related files
 const ALLOWED_EXTENSIONS: &[&str] = &["md", "markdown", "mdx", "mdown", "txt"];
