@@ -69,7 +69,7 @@ function waitForLayout(element, maxAttempts = 10) {
 let elements = {};
 
 // Tauri APIs (initialized after Tauri is ready)
-let invoke, listen, appWindow;
+let invoke, appWindow;
 
 // SVG icon paths
 const icons = {
@@ -415,7 +415,6 @@ async function init() {
     }
 
     invoke = tauri.core.invoke;
-    listen = tauri.event.listen;
 
     // Get current window
     if (tauri.window && tauri.window.getCurrentWindow) {
@@ -428,31 +427,26 @@ async function init() {
     // Apply default theme (dark for retro CRT aesthetic)
     applyTheme('dark');
 
-    // Listen for init event from Rust backend
-    await listen('app-init', async (event) => {
-      const { file_path, edit_mode, theme } = event.payload;
+    // Pull init state from backend (replaces old event-based approach)
+    const { file_path, edit_mode, theme } = await invoke('get_init_state');
 
-      // Apply theme
-      applyTheme(theme);
+    // Apply theme from CLI args
+    applyTheme(theme);
 
-      // Load file if provided, otherwise start blank editor
-      if (file_path) {
-        await loadFile(file_path);
-        // Set initial edit mode if requested
-        if (edit_mode) {
-          setEditMode(true);
-        }
-      } else {
-        // New blank document mode
-        state.filename = 'Untitled';
-        state.currentContent = '';
-        state.originalContent = '';
-        state.filePath = null;
-        elements.filename.textContent = 'Untitled';
-        elements.preview.innerHTML = '<p class="empty-state">Start typing in edit mode...</p>';
-        setEditMode(true);  // Start in edit mode for blank documents
+    // Load file if provided, otherwise start blank editor
+    if (file_path) {
+      await loadFile(file_path);
+      if (edit_mode) {
+        await setEditMode(true);
       }
-    });
+    } else {
+      state.filename = 'Untitled';
+      state.currentContent = '';
+      state.originalContent = '';
+      state.filePath = null;
+      elements.filename.textContent = 'Untitled';
+      await setEditMode(true);
+    }
 
   } catch (error) {
     console.error('Failed to initialize app:', error);
