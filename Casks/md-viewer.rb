@@ -1,6 +1,6 @@
 cask "md-viewer" do
-  version "0.1.1"
-  sha256 "9a0e857b481ec895c93951f2b915e00b41834dd0f4babd157be6cbf781386da8"
+  version "0.1.2"
+  sha256 "6074a74fc202178e2fc6d13d252ea605daccedba9775fcfc9615b9fdf5d95990"
 
   url "https://github.com/aberghammer-analytics/md-viewer/releases/download/v#{version}/md-viewer_#{version}_universal.dmg"
   name "md-viewer"
